@@ -1,5 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+
+const saveFavoritesToLocalStorage = (favorites) => {
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+};
+
+
+const loadFavoritesFromLocalStorage = () => {
+  try {
+    const favorites = localStorage.getItem('favorites');
+    return favorites ? JSON.parse(favorites) : [];
+  } catch (error) {
+    console.error('Error loading favorites from localStorage:', error);
+    return [];
+  }
+};
+
 export const fetchCountries = createAsyncThunk(
   'countries/fetchAll',
   async () => {
@@ -41,20 +57,33 @@ const countriesSlice = createSlice({
   name: 'countries',
   initialState: {
     countries: [],
-    favorites: [],
+    favorites: loadFavoritesFromLocalStorage(),
     status: 'idle',
-    error: null
+    error: null,
+    lastUpdated: null
   },
   reducers: {
     addFavorite: (state, action) => {
       if (!state.favorites.some(country => country.cca3 === action.payload.cca3)) {
         state.favorites.push(action.payload);
+        saveFavoritesToLocalStorage(state.favorites);
+        state.lastUpdated = new Date().toISOString();
       }
     },
     removeFavorite: (state, action) => {
       state.favorites = state.favorites.filter(
         country => country.cca3 !== action.payload
       );
+      saveFavoritesToLocalStorage(state.favorites);
+      state.lastUpdated = new Date().toISOString();
+    },
+    clearFavorites: (state) => {
+      state.favorites = [];
+      localStorage.removeItem('favorites');
+      state.lastUpdated = new Date().toISOString();
+    },
+    syncFavorites: (state) => {
+      state.favorites = loadFavoritesFromLocalStorage();
     }
   },
   extraReducers: (builder) => {
@@ -108,5 +137,14 @@ const countriesSlice = createSlice({
   }
 });
 
-export const { addFavorite, removeFavorite } = countriesSlice.actions;
+export const { 
+  addFavorite, 
+  removeFavorite, 
+  clearFavorites,
+  syncFavorites 
+} = countriesSlice.actions;
+
+export const selectFavorites = (state) => state.countries.favorites;
+export const selectLastUpdated = (state) => state.countries.lastUpdated;
+
 export default countriesSlice.reducer;

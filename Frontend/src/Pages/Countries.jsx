@@ -31,8 +31,13 @@ export default function Countries() {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const region = searchParams.get('region');
+    const language = searchParams.get('language');
+    
     if (region) {
       setRegionFilter(region);
+    }
+    if (language) {
+      setLanguageFilter(language);
     }
   }, [location.search]);
 
@@ -56,6 +61,13 @@ export default function Countries() {
     }
   };
 
+  const updateUrlFilters = () => {
+    const searchParams = new URLSearchParams();
+    if (regionFilter) searchParams.set('region', regionFilter);
+    if (languageFilter) searchParams.set('language', languageFilter);
+    navigate(`/countries?${searchParams.toString()}`);
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setRegionFilter('');
@@ -67,6 +79,7 @@ export default function Countries() {
     setSearchTerm(previousFilters.searchTerm);
     setRegionFilter(previousFilters.regionFilter);
     setLanguageFilter(previousFilters.languageFilter);
+    updateUrlFilters();
   };
 
   const filteredCountries = useMemo(() => {
@@ -195,11 +208,7 @@ export default function Countries() {
                 value={regionFilter}
                 onChange={(e) => {
                   setRegionFilter(e.target.value);
-                  if (e.target.value) {
-                    navigate(`/countries?region=${encodeURIComponent(e.target.value)}`);
-                  } else {
-                    navigate('/countries');
-                  }
+                  updateUrlFilters();
                 }}
                 className="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-50"
               >
@@ -216,7 +225,10 @@ export default function Countries() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
               <select
                 value={languageFilter}
-                onChange={(e) => setLanguageFilter(e.target.value)}
+                onChange={(e) => {
+                  setLanguageFilter(e.target.value);
+                  updateUrlFilters();
+                }}
                 className="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-50"
               >
                 <option value="">All Languages</option>
@@ -260,11 +272,7 @@ export default function Countries() {
                         value={regionFilter}
                         onChange={(e) => {
                           setRegionFilter(e.target.value);
-                          if (e.target.value) {
-                            navigate(`/countries?region=${encodeURIComponent(e.target.value)}`);
-                          } else {
-                            navigate('/countries');
-                          }
+                          updateUrlFilters();
                         }}
                         className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-50"
                       >
@@ -281,7 +289,10 @@ export default function Countries() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
                       <select
                         value={languageFilter}
-                        onChange={(e) => setLanguageFilter(e.target.value)}
+                        onChange={(e) => {
+                          setLanguageFilter(e.target.value);
+                          updateUrlFilters();
+                        }}
                         className="w-full pl-4 pr-10 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-50"
                       >
                         <option value="">All Languages</option>

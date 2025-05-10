@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { removeFavorite } from '../redux/country/countriesSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHeart, FiTrash2, FiEye } from 'react-icons/fi';
 import CountryDetailsModal from '../Components/CountryDetails';
-
-
 
 export default function Favourite() {
   const dispatch = useDispatch();
@@ -13,6 +11,15 @@ export default function Favourite() {
   const { currentUser } = useSelector((state) => state.user);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [localFavorites, setLocalFavorites] = useState([]);
+
+  useEffect(() => {
+    // Load favorites from localStorage if user is logged in
+    if (currentUser) {
+      const storedFavorites = JSON.parse(localStorage.getItem('favorites')) || [];
+      setLocalFavorites(storedFavorites);
+    }
+  }, [currentUser, favorites]);
 
   const handleRemoveFavorite = (countryCode, e) => {
     e.stopPropagation();
@@ -30,6 +37,9 @@ export default function Favourite() {
     setSelectedCountry(null);
   };
 
+  // Use localFavorites when user is logged in, otherwise empty array
+  const displayFavorites = currentUser ? localFavorites : [];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Your Favorite Countries</h1>
@@ -38,7 +48,7 @@ export default function Favourite() {
         <div className="text-center py-12">
           <p className="text-lg text-gray-600 mb-4">Please sign in to view your favorite countries</p>
         </div>
-      ) : favorites.length === 0 ? (
+      ) : displayFavorites.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-lg text-gray-600 mb-4">You haven't added any favorites yet</p>
           <p className="text-gray-500">Search for countries and click the ♡ icon to add them here</p>
@@ -47,7 +57,7 @@ export default function Favourite() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <AnimatePresence>
-              {favorites.map((country) => (
+              {displayFavorites.map((country) => (
                 <motion.div
                   key={country.cca3}
                   initial={{ opacity: 0, y: 20 }}
@@ -95,12 +105,11 @@ export default function Favourite() {
           </div>
           
           <div className="mt-6 text-center text-sm text-gray-500">
-            {favorites.length} {favorites.length === 1 ? 'country' : 'countries'} in favorites
+            {displayFavorites.length} {displayFavorites.length === 1 ? 'country' : 'countries'} in favorites
           </div>
         </>
       )}
 
-      {/* Country Details Modal */}
       <CountryDetailsModal 
         country={selectedCountry} 
         isOpen={isModalOpen}
